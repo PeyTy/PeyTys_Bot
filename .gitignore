@@ -1,0 +1,6 @@
+temp
+*.map
+.sync
+node_modules
+*.js
+config.json

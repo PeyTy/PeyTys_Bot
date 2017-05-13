@@ -1,0 +1,21 @@
+{
+  "name": "PeyTys_Bot",
+  "version": "3.01.0",
+  "description": "",
+  "main": "bot.js",
+  "dependencies": {
+    "curlrequest": "^1.0.1",
+    "github-webhook-handler": "^0.6.0",
+    "mathjs": "^3.20.2",
+    "node-telegram-bot-api": "^0.27.1",
+    "webp-converter": "^2.1.6",
+    "webshot": "^0.18.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodejs main.js"
+  },
+  "author": "PeyTy",
+  "license": "GPL-3.0"
+}

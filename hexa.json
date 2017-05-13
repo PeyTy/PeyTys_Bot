@@ -1,0 +1,15 @@
+{
+	"name": "PeyTys_Bot",
+	"version": "1.0.0",
+	"description": "",
+	"main": "bot/bot.hexa",
+	"author": "PeyTy",
+	"license": "GPL-3.0",
+	"target": {
+		"generator": "JavaScript",
+		"instance": {
+			"generatePackageJson": false
+		}
+	},
+	"files": []
+}

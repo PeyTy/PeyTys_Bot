@@ -1,0 +1,1152 @@
+// Copyright (C) 2018 <Oleg Petrenko> https://github.com/PeyTy
+// This program is free software: you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation, version 3.
+//
+// This program is distributed in the hope that it will be
+// useful, but WITHOUT ANY WARRANTY; without even the implied
+// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+// PURPOSE. See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General
+// Public License along with this program. If not, see
+// <https://www.gnu.org/licenses/>.
+
+// JavaScript bindings
+
+
+class ES6 {
+	static function trim(s: String): String return @untyped s['trim']()
+	static function startsWith(s: String, sub: String): Bool return @untyped s['startsWith'](sub)
+	static function endsWith(s: String, sub: String): Bool return @untyped s['endsWith'](sub)
+	static function replace(s: String, sub: Any, with: Any): String return @untyped s['replace'](sub, with)
+}
+
+@native("global")
+declare class Global {
+	static function setTimeout(fun: Void => Void, delay: Int): Void
+	static function isNaN(any: Any): Bool
+	static function parseInt(any: Any): Int
+}
+
+@require("node-telegram-bot-api")
+declare class TelegramBot {
+	new(token: String, config: {:})
+	function on(event: String, fun: Message => Void): Void
+	function sendMessage(chat: Id, text: String, data: MessageData?): Void
+	function sendSticker(chat: Id, id: String, data: MessageData?): Any
+	function sendDocument(chat: Id, id: String, data: MessageData?): Void
+	function kickChatMember(chat: Id, id: Id): Void
+	function answerInlineQuery(query: Id, data: String, options: { cache_time: Int }?): Void
+}
+
+@require("curlrequest")
+declare class Curl {
+	static function request(options: {:}, res: (Any, Any) => Void): Void
+}
+
+enum ChatType: String {
+	Private = "private"
+}
+
+enum EntityType: String {
+	Url = "url"
+	TextLink = "text_link"
+	Code = "code"
+	Pre = "pre"
+	Mention = "mention"
+}
+
+enum ParseMode: String {
+	Markdown = "Markdown"
+	Html = "HTML"
+}
+
+declare MessageData = {
+}
+
+declare Message = {
+	message_id: Id,
+	?text: String,
+	chat: {
+		id: Id,
+		type: ChatType,
+	},
+	?new_chat_participant: {
+		?username: String,
+		first_name: String,
+		id: Id,
+	},
+	?from: {
+		?username: String,
+	},
+	?reply_to_message: Message,
+	?entities: Array<{
+		type: EntityType,
+		offset: Int,
+		length: Int,
+		?url: String,
+	}>,
+	?forward_from: {
+		?username: String,
+	},
+}
+
+declare GitHubEvent = {:}
+declare class GitHubHandler {
+	function on(eventHandler: (event:GitHubEvent) => Void)
+}
+
+@native("Buffer")
+declare class Buffer {
+	new(data: String, encoding: String)
+	function toString(): String
+}
+
+@native("JSON")
+declare class JSON {
+	static function parse(data: String): Any
+	static function stringify(data: Any, fun: Any?, size: Int?): Any
+}
+
+@native("console")
+declare class Console {
+	static function log(...extra: Any): Void
+	static function error(data: Any, message: String): Void
+}
+
+declare Config = {
+	token: String,
+	wikiPath: String,
+	wikiPathKernel: String
+}
+
+
+class Bot {
+	static let greenteaos_news: Id = -1001333847602
+	static let greenteaos: Id = -1001082036352
+	static let hexalang: Id = -1001067052099
+	static let hexalang_news: Id = -1001168190572
+	static let admin_chat: Id = 609463140
+	static let stickerAttention = "CAADAgADTQUAAp2mfwNRlOzArC6mzQI"
+
+	static let english = [greenteaos, greenteaos_news, hexalang]
+
+	static let help =
+		"I understand only simple speech. Ask me through the @peytys_bot and text of the command." +
+		" Sometimes I will read texts of messages from groups. Send ping to check if I'm online.\nSource code and issues: https://github.com/PeyTy/PeyTys_Bot"
+
+	static function translit(text: String): String {
+		return text.replace
+		(
+			new RegExp('[а-яА-Я]','g'), // TODO ~//
+			match => '_x' + match.charCodeAt() + 'x_'
+		)
+	}
+
+	static function detranslit(text: String): String {
+		return text.replace(
+			new RegExp('_x(\\d+)x_','g'),
+			function (match, code) {
+			return String.fromCharCode(code)
+		})
+	}
+
+	static function calculate(expression: String): String? {
+		let math = require('mathjs')
+		if (Global.isNaN(expression) == true, expression != '""', expression != "true", expression != "false") {
+			try {
+				var text: String = expression.toLowerCase()
+				text = text.split("∞").join("Infinity")
+				text = text.split("π").join("pi")
+				text = text.split("infinity").join("Infinity")
+				let scope = {
+					last: null
+				}
+				math.eval(translit(text), scope)
+				text = 'cbrt(x)=x^(1/3)\nfmod(a,b)=a%b\nNaN\n' + text // TODO js-way
+				let result: Any = math.eval(translit(text), scope)
+				if (result != undefined) {
+					function format(result: Any): Any {
+						if (instanceof(result, Function))
+							return "function"
+						if ((typeof(result) == 'object'), result.entries != null)
+						{
+							let r = result.entries.pop()
+							if (instanceof(r, Function))
+								throw null
+							return format(r)
+						}
+						if (result.unit, result.value != null)
+							return result.value + ' ' + result.unit.name
+						if (result.re != null, result.im != null)
+							return result.re + ' + ' + result.im + 'i'
+						if (Global.isNaN(result))
+							throw null
+						if (typeof(result) == 'number')
+							return result
+						throw null
+					}
+					return '' + format(result)
+				}
+			} catch (e: Any) {
+				return null
+			}
+		} else {
+			return null
+		}
+	}
+
+	static function evaluator(text) {
+		'use strict'
+		let code = "(function(){let window=null;let console=null;\n" + text + "\n/**/\nreturn 'Use `return`';})()"
+		return "" + eval(code)
+	}
+
+	new() {
+		let http = require('http')
+		let url = require('url')
+		let fs = require('fs')
+		let webshot: Any = require('webshot')
+		let math = require('mathjs')
+		let createHandler = require('github-webhook-handler')
+		let path = require('path')
+		let webp = require('webp-converter')
+
+		let config: Config = JSON.parse(fs.readFileSync(__dirname + "/config.json"))
+
+		// Replace the value below with the Telegram token you receive from @BotFather
+		let token = config.token // 000000000:AAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+		// Path to Greentea repos
+		let wikiPath = config.wikiPath
+		let wikiPathKernel = config.wikiPathKernel
+
+		// Create temp folder
+		let dir = 'temp'
+		if (!fs.existsSync(dir)) {
+			fs.mkdirSync(dir)
+		}
+
+		// Create a bot that uses 'polling' to fetch new updates
+		let bot = new TelegramBot(token, {polling: true})
+
+		var lastRandomIndex = -1
+		function genRandomIndex(arr) {
+			return Math.floor(Math.random() * arr.length)
+		}
+		function randomFromArray(arr: Array<String>) {
+			var ind = genRandomIndex(arr)
+			if (lastRandomIndex == ind)
+				ind = genRandomIndex(arr)
+			lastRandomIndex = ind
+			return arr[ind]
+		}
+
+		let calcMemory = new Map<String, String>()
+		function tryCalculator(commandPartsTrimmed: Array<String>) {
+			let result = []
+			for (part in commandPartsTrimmed)
+			{
+				let splitted = part.split("=")
+				if (splitted.length != 3, splitted.length != 2)
+					continue
+				let varname = splitted[0].trim()
+				let value = (splitted[2] ?? "").trim()
+				if (varname != "", value == "") {
+					result.push(varname + " = " + (calcMemory.get(varname) ?? "not set"))
+					continue
+				}
+			}
+			if (result.length > 0)
+				return result.join('\r\n')
+			return null
+		}
+
+		function drawSticker(chatId: Id, text: String, promiseHandler: (Any) => Void) {
+			let tmp = 'temp/' + Math.random() + '_' + Math.random() + '.png'
+			webshot(text
+			,
+			tmp, {
+				siteType: 'html',
+				screenSize: { width: 128, height: /*msg.reply_to_message.text.split(' ').length **/ 20 },
+				shotSize: { width: 'all', height: 'all' }
+			}, function (err) {
+				webp.cwebp(tmp, tmp + ".webp", "-q 80", function (status) {
+					// If exicuted successfully status will be '100'
+					// If exicuted unsuccessfully status will be '101'
+					promiseHandler(bot.sendSticker(chatId, tmp + ".webp"))
+				})
+			})
+		}
+
+		bot.on('inline_query', function (query: Any) {
+			let queryId = query.id
+
+			var offset: Int = Global.parseInt(query.offset) ?? 0
+			var text: String = query.query.substr(offset).trim()
+			Console.log("query:<" + text + '>' + text.charCodeAt(0))
+			if (text.length < 1 || text == "") { return }
+
+			if (text.split(' ').length < 4) {
+				text = "&nbsp; " + text + " &nbsp;"
+			}
+			text = text.split('<').join('&lt;').split('>').join('&gt;')
+			text = text.substr(0, Math.round(Math.min(1000, text.length)))
+			text = '<!DOCTYPE html><html><body><style>*{font-family: "verdana";-webkit-text-stroke: 5px white;font-size: 50px;}</style><center><b>'
+			+ text.split(' ').join('</br>') + '</b></center></body></html>'
+
+			let results: Array<{:}> = []
+			let mathValue = calculate(query.query.substr(offset).trim())
+
+			drawSticker(admin_chat, text, function(promise: Any) {
+				promise.then(function(resp) {
+					let sticker: String = resp.sticker.file_id
+					results.push({
+						type: "sticker", // String Type of the result, must be sticker
+						id: sticker, // String Unique identifier for this result, 1-64 bytes
+						sticker_file_id: sticker, // String A valid file identifier of the sticker
+					})
+					if (let math = mathValue) {
+						results.push({
+							type: "article", // String Type of the result, must be sticker
+							id: sticker+"-math", // String Unique identifier for this result, 1-64 bytes
+							title: query.query.substr(offset).trim(), // String A valid file identifier of the sticker
+							description: math,
+							input_message_content: {message_text: "" + query.query.substr(offset).trim() + ' = ' + math},
+						})
+					}
+					results.push({
+						type: "article", // String Type of the result, must be sticker
+						id: sticker+"-article", // String Unique identifier for this result, 1-64 bytes
+						title: "Click on the sticker on the top left!", // String A valid file identifier of the sticker
+						description: "Even if you don't see it, it's there!",
+						input_message_content: {message_text: "" + query.query.substr(offset).trim()},
+					})
+					Global.setTimeout(function() {
+						bot.answerInlineQuery(queryId, /*JSON.stringify*/@untyped results, { cache_time: 86400 })
+					},222)
+				})}
+			)
+		})
+
+		// Listen for any kind of message. There are different kinds of
+		// messages.
+		var previousMessage: Message = null
+		var grammarReason: String = null
+		bot.on('message', function (msg: Message) {
+		  try {
+				let chatId = msg.chat.id
+				let en = english.indexOf(msg.chat.id) != -1
+
+				if (
+					let new_chat_participant = msg.new_chat_participant,
+					let username = new_chat_participant.username ?? new_chat_participant.first_name
+				) {
+
+					if (username == "peytys_bot") {
+						bot.sendMessage(chatId, 'Hello there!')
+						return
+					}
+					if (username.toLowerCase().endsWith("bot")) {
+						bot.sendMessage(chatId, 'Bot! BOT! --> @' + username + ' <-- caught it!')
+							.then(() => bot.sendSticker(chatId, stickerAttention))
+							.then(() => bot.sendMessage(chatId, 'Bot bot bot! Bots right HERE!'))
+							.then(() => bot.kickChatMember(chatId, new_chat_participant.id))
+							.then(() => bot.sendMessage(chatId, 'Fight Skynet!'))
+							// TODO .catch
+							//.catch((e: Error) => bot.sendMessage(chatId, 'Failed to ban: ' + e))
+						return
+					}
+					Global.setTimeout(function() {
+					if (!en) bot.sendMessage(chatId, randomFromArray(['Hola', 'Welcome', 'Aloha']) + ', @' + username + '!')
+					if (en) bot.sendMessage(chatId,
+						'Welcome, @' + username + '! Don\'t make a lot of grammatical errors. I\'m watching you.\n' +
+						'Behave yourself culturally and all that!\n'+
+						'For trying to trolling, you risk a ban.\n' +
+						'For useful information, look at the description of the group.\n' +
+						'Group is 18+, for topics of discussion and vocabulary, moral damage and mental turmoil, no responsibility.\n\n' +
+						'I said everything, %username%!\n' +
+						'I mean, @' + msg.new_chat_participant.username)
+					}, 500)
+				  return
+				}
+
+				if (en) { return }
+
+				if (let msgText = msg.text)
+				{
+					if ((msgText.toLowerCase() == "/start" && msg.chat.type == "private") || msgText.toLowerCase() == "/start@peytys_bot") {
+						bot.sendMessage(chatId, "Hello! " + help, { reply_to_message_id: msg.message_id })
+						return
+					}
+					else if (msgText.charAt(0) == "/") {
+						return
+					}
+				}
+				else {
+					msg.text = ""
+				}
+
+				if (msg.text == null || msg.text == undefined) Console.log(JSON.stringify(msg, null, 2))
+
+				let commandParts: Array<String> = msg.text.toLowerCase().split('\r').join('').split('\n')
+				let commandPartsTrimmed = []
+				for (part in commandParts) {
+					commandPartsTrimmed.push(part.trim())
+				}
+
+				let command = commandPartsTrimmed.join('\n')
+
+				msg.from = msg.from ?? {username: ""}
+				msg.from.username = msg.from.username ?? ""
+
+				let isAdmin = msg.from.username.toLowerCase() == "peyty"
+
+				if (
+					(isAdmin) &&
+					(msg.text != '') &&
+					(msg.entities && msg.entities[0]) &&
+					((msg.entities[0].offset == 0) && (msg.entities[0].type == "pre" || msg.entities[0].type == "code")) &&
+					(msg.entities[0].length == (msg.text.length - 0))
+					&& (msg.text.indexOf('return') != -1)
+					&& (msg.text.indexOf('while') == -1)
+					&& (msg.text.indexOf('for') == -1)
+					&& (msg.text.indexOf('function') == -1)
+					&& (msg.text.indexOf('=>') == -1)
+				) {
+					try {
+						bot.sendMessage(chatId, "" + evaluator(msg.text), { reply_to_message_id: msg.message_id })
+					} catch (e:Any) {
+						bot.sendMessage(chatId, "" + e.message, { reply_to_message_id: msg.message_id })
+					}
+					return
+				}
+
+				if (isAdmin) {
+					if (command.indexOf('message info') > -1) {
+						bot.sendMessage(chatId, JSON.stringify(msg, null, 2), { reply_to_message_id: msg.message_id })
+					}
+					if (command.indexOf('test sticker') > -1) {
+						bot.sendSticker(chatId, "CAADAwADhQEAAu_thAXDSDqVrNRJjQI", { reply_to_message_id: msg.message_id })
+					}
+					if (command.indexOf('previous message info') > -1) {
+						if (previousMessage == null) {
+							bot.sendMessage(chatId, "I misremember :С", { reply_to_message_id: msg.message_id })
+							return
+						}
+						bot.sendMessage(chatId, JSON.stringify(previousMessage, null, 2), { reply_to_message_id: msg.message_id })
+						return
+					}
+
+					if (command == "screenshot") {
+						let links: [String] = []
+						var entities = msg.reply_to_message.entities
+						if (entities != null)
+							for (e in entities)
+							{
+								if (e.type == EntityType.Url) {
+									links.push(msg.reply_to_message.text.substr(e.offset, e.length))
+								}
+								else if (e.type == EntityType.TextLink) {
+									links.push(e.url)
+								}
+							}
+						entities = msg.entities
+						if (entities != null)
+							for (e in entities)
+							{
+								if (e.type == EntityType.Url) {
+									links.push(msg.text.substr(e.offset, e.length))
+								}
+								else if (e.type == EntityType.TextLink) {
+									links.push(e.url)
+								}
+							}
+
+						if (links.length == 0)
+							return bot.sendMessage(chatId, "Nothing to shot 😢", { reply_to_message_id: msg.message_id })
+
+						function shotAllLinks(links: [String], index: Int = 0) {
+							let link = links[index]
+							bot.sendMessage(chatId, "Shooting " + link, {reply_to_message_id:msg.message_id})
+							let tmp = 'temp/'+Math.random()+'_'+Math.random()+'.pdf'
+							webshot(link, tmp, {
+								defaultWhiteBackground: true,
+								quality: 55,
+								shotSize:
+								{ width: 'all'
+								, height: 'all' } },
+								function (err: Any) {
+									if (let err = err) {
+										bot.sendMessage(chatId, "Error 👻 " + err, {reply_to_message_id:msg.message_id})
+									}
+									else {
+										bot.sendDocument(chatId, tmp, {reply_to_message_id:msg.message_id})
+										fs.unlink(tmp, () => { Console.log(tmp + " deleted,") })
+									}
+									if ((++index) < links.length)
+										shotAllLinks(links, index)
+								})
+						}
+						shotAllLinks(links)
+						return
+					}
+				}
+
+				previousMessage = msg
+				let mathValue = calculate(msg.text)
+				if (let math = mathValue) {
+					bot.sendMessage(chatId, math, { reply_to_message_id: msg.message_id })
+					return
+				}
+				if ((command.indexOf('wiki ') == 0 || command.indexOf('doc ') == 0), command.length > 5) {
+					function walk(dir: String, done: (Any, Any?) => Void) {
+						var results = []
+						fs.readdir(dir, function (err, list: Array<String>) {
+							if (err)
+								return done(err)
+							var pending = list.length
+							if (!pending)
+								return @untyped done(null, results)
+							list.forEach(function (file) {
+								let file = path.resolve(dir, file)
+								fs.stat(file, function (err, stat) {
+									if (stat != null, stat.isDirectory()) {
+										if (!file.endsWith(".git")) {
+											walk(file, function (err, res) {
+												results = results.concat(res)
+												if (!--pending)
+													done(null, results)
+											})
+										} else {
+											if (!--pending)
+												done(null, results)
+										}
+									} else {
+										results.push(file)
+										if (!--pending)
+											done(null, results)
+									}
+								})
+							})
+						})
+					}
+					walk(wikiPath, @untyped function (err, results: Array<String>) {
+						walk(wikiPathKernel, @untyped function (err, resultsKernel) {
+							if (!resultsKernel) { return }
+							let results = results.concat(resultsKernel)
+							let resultsText: Array<String> = []
+							let searcher = msg.text.toLowerCase().split(' ')
+							searcher.shift()
+							for (result in results) {
+								Console.log("result{{" + result + "}}")
+								let contents = fs.readFileSync(result).toString() /*.toLowerCase()*/.split('\n')
+								for (content in contents)
+								{
+									if (resultsText.length > 6)
+										break
+									var has = 0
+									for (s in searcher)
+									{
+										let s: String = s.toLowerCase()
+										Console.log("s{{" + s + "}}")
+										Console.log("content{{" + content + "}}")
+										if (s.length < 2)
+											continue
+										if (content.toLowerCase().indexOf(s) != -1) {
+											has++
+										}
+									}
+									if (has == searcher.length) {
+										resultsText.push(content.trim())
+										var result = result.replace(wikiPath, "https://github.com/GreenteaOS/Greentea/blob/master/")
+										result = result.replace(wikiPathKernel, "https://github.com/NotDead/Kernel/wiki/")
+										if (result.indexOf("https://github.com/NotDead/Kernel/wiki/") == 0) {
+											if (result.endsWith(".md"))
+												result = result.substr(0, result.length - ".md".length)
+											if (result.endsWith(".mediawiki"))
+												result = result.substr(0, result.length - ".mediawiki".length)
+										}
+										resultsText.push(result)
+									}
+								}
+							}
+							if (resultsText.length > 0) {
+								bot.sendMessage(chatId, resultsText.join('\n\n'), { /*parse_mode:"Markdown",*/ reply_to_message_id: msg.message_id })
+							}
+						})
+					})
+					return
+				}
+				if (command == '😂😂😂') {
+					bot.sendMessage(chatId, randomFromArray(["Such fun?", "Absolutely."]), { reply_to_message_id: msg.message_id })
+					return
+				}
+				if (command == '😂') {
+					bot.sendMessage(chatId, randomFromArray(["Yeah", "he-he", "ROFL", "LoL", "Sure!", "😆", "I can't even...'"]))
+					return
+				}
+				if (
+					['swichpunto', 'switchpunto', 'puntoswich', 'puntoswitch', "geynj", 'punto'].indexOf(command) != -1,
+					let reply = msg.reply_to_message, let input = reply.text
+				) {
+					let gliphs_eng = "`qwertyuiop[]\\asdfghjkl;'zxcvbnm,./!@#$%^&*()_+|".split('')
+					let gliphs_rus = "ёйцукенгшщзхъ\\фывапролджэячсмитьбю.!\"№;%:?*()_+/".split('')
+					var output = ""
+					for (gliph in input.split(''))
+					{
+						if (gliphs_eng.indexOf(gliph) != -1) {
+							output += gliphs_rus[gliphs_eng.indexOf(gliph)]
+						}
+						else if (gliphs_eng.indexOf(gliph.toLowerCase()) != -1) {
+							output += gliphs_rus[gliphs_eng.indexOf(gliph.toLowerCase())].toUpperCase()
+						}
+						else if (gliphs_rus.indexOf(gliph) != -1) {
+							output += gliphs_eng[gliphs_rus.indexOf(gliph)]
+						}
+						else if (gliphs_rus.indexOf(gliph.toLowerCase()) != -1) {
+							output += gliphs_eng[gliphs_rus.indexOf(gliph.toLowerCase())].toUpperCase()
+						}
+						else
+							output += gliph
+					}
+					bot.sendMessage(chatId, '☝' + output, { reply_to_message_id: reply.message_id })
+					return
+				}
+				if (command.length > 10, command.endsWith('😂')) {
+					bot.sendMessage(chatId, randomFromArray(["😅", "Funny", "😂", "LoL", "👍🏻😄", "😆"]), { reply_to_message_id: msg.message_id })
+					return
+				}
+				if (command.startsWith("sticker "), msg.text.length > "sticker ".length) {
+					var text: String = msg.text.substr("sticker ".length, Math.round(Math.min(1000, msg.text.length)))
+					let tmp = 'temp/' + Math.random() + '_' + Math.random() + '.png'
+					if (text.split(' ').length < 4) {
+						text = "&nbsp; " + text + " &nbsp;"
+					}
+					text = text.split('<').join('&lt;').split('>').join('&gt;')
+					webshot('<!DOCTYPE html><html><body><style>*{font-family: "verdana";-webkit-text-stroke: 5px white;font-size: 50px;}</style><center><b>' + text.split(' ').join('</br>') + '</b></center></body></html>', tmp, {
+						siteType: 'html',
+						screenSize: { width: 128, height: /*msg.reply_to_message.text.split(' ').length **/ 20 },
+						shotSize: { width: 'all', height: 'all' }
+					}, function (err) {
+						webp.cwebp(tmp, tmp + ".webp", "-q 80", function (status) {
+							bot.sendSticker(chatId, tmp + ".webp", { reply_to_message_id: msg.message_id })
+						})
+					})
+					return
+				}
+
+				var rainbow = false
+				var command = command
+				if (command == "rainbow") {
+					command = "sticker"
+					rainbow = true
+				}
+
+				if ((command == "sticker" || command == "get sticker"), let reply = msg.reply_to_message) {
+					let tmp = 'temp/' + Math.random() + '_' + Math.random() + '.png'
+					if (reply.text.split(' ').length < 4) {
+						reply.text = "&nbsp; " + reply.text + " &nbsp;"
+					}
+					reply.text = reply.text.split('<').join('&lt;').split('>').join('&gt;')
+					reply.text = reply.text.substr(0, Math.round(Math.min(1000, reply.text.length)))
+					let style =
+						rainbow?'b{
+							display: inline-block;
+							font-family:"verdana";
+							font-size: 50px;
+							background:linear-gradient(258.25deg,#00cbff 12%,#7300ff 83%);
+							-webkit-background-clip: text;
+							-webkit-text-fill-color: transparent;
+							-webkit-font-smoothing: antialiased;
+						}'
+						:'*{
+							font-family: "verdana";
+							-webkit-text-stroke: 5px white;
+							font-size: 50px;
+							-webkit-font-smoothing: antialiased;
+						}'
+					webshot('<!DOCTYPE html><html><body><style>'+style+'</style><center><b>' + reply.text.split(' ').join('</br>') + '</b></center></body></html>',
+					//'<html><body><style>font: 20px "Open Sans", sans-serif;</style><center><b><font face="verdana" size="20">' + msg.reply_to_message.text.split(' ').join('</br>') + '</font></b></center></body></html>',
+					tmp, {
+						siteType: 'html',
+						screenSize: { width: 128, height: /*msg.reply_to_message.text.split(' ').length **/ 20 },
+						shotSize: { width: 'all', height: 'all' }
+					}, function (err) {
+						webp.cwebp(tmp, tmp + ".webp", "-q 80", function (status) {
+							if (command != "get sticker") {
+								bot.sendSticker(chatId, tmp + ".webp", { reply_to_message_id: reply.message_id })
+							}
+							else {
+								bot.sendDocument(chatId, tmp + ".webp", { reply_to_message_id: reply.message_id })
+							}
+						})
+					})
+					return
+				}
+				if (command == "explain", isAdmin) {
+					if (let grammarReason = grammarReason)
+						bot.sendMessage(chatId, grammarReason, { reply_to_message_id: msg.message_id })
+					else
+						bot.sendMessage(chatId, "I misremember...", { reply_to_message_id: msg.message_id })
+					return
+				}
+				if (command == "shrug" || command == "dunno") {
+					if (let reply = msg.reply_to_message) {
+						bot.sendMessage(chatId, "¯\\_(ツ)_/¯", { reply_to_message_id: reply.message_id })
+						return
+					}
+					bot.sendMessage(chatId, "¯\\_(ツ)_/¯")
+					return
+				}
+				function shouldGrammar(username: String): Bool {
+					return [].indexOf((username ?? "").toLowerCase()) != -1
+				}
+				function isCode(text: String) {
+					let text = text.split("://").join("")
+					if (text.indexOf('\n') == -1)
+						return false
+					if ((text.indexOf('void ') != -1) || (text.indexOf('{') != -1) || (text.indexOf('//') != -1)) {
+						return true
+					}
+					return false
+				}
+
+				if (isCode(msg.text)) {
+					var notFine = true
+					if (let entities = msg.entities)
+						for (entitie in entities)
+						{
+							if (entitie == null)
+								continue
+							if (entitie.type == EntityType.Code)
+								notFine = false
+							if (entitie.type == EntityType.Pre)
+								notFine = false
+						}
+					if (notFine) {
+						bot.sendMessage(chatId, "Use ``` for code formatting!", { reply_to_message_id: msg.message_id })
+					}
+				}
+
+				if (command.indexOf("affected subsystems ") > -1) {
+					var link = command.replace("affected subsystems ", "").trim()
+					if (link.length < 3) {
+						bot.sendMessage(chatId, 'You need to specify the repository name and the request id, for example:\r\n' +
+							'Affected subsystems https://github.com/GreenteaOS/Kernel/pull/18', { reply_to_message_id: msg.message_id })
+						return
+					}
+					link += ".diff"
+					bot.sendMessage(chatId, 'Now I\'ll check out this pull-quest...', { reply_to_message_id: msg.message_id })
+					let options = {
+						url: link,
+						encoding: "utf8"
+					}
+					Curl.request(options, function (err, result) {
+						if (err == null) {
+							let base = new Buffer(result, 'utf8').toString()
+							let m = ['Patch size: ' + base.split('\n').length + " lines."]
+							let diffs = base.split('diff --git a')
+							let files = []
+							let subs = []
+							for (diff in diffs)
+							{
+								if (diff.length <= 1)
+									continue
+								let fname = diff.split('\n')[0].split(' b/')[0]
+								files.push(fname)
+								let sub = fname.split('/')[1]
+								if (subs.indexOf(sub) == -1) {
+									subs.push(sub)
+								}
+							}
+							m.push('')
+							m.push('Affected files:')
+							for (file in files)
+							{
+								m.push(file)
+							}
+							let unsafe = [
+								//"base",
+								//"boot",
+								"dll",
+								"drivers",
+								"hal",
+								//"media",
+								//"modules",
+								"ntoskrnl",
+								//"sdk",
+								"subsystems",
+								"win32ss",
+							]
+							m.push('')
+							m.push('Affected subsystems:')
+							for (sub in subs)
+							{
+								m.push((unsafe.indexOf(sub) > -1 ? "⚠️" : "") + sub)
+							}
+							bot.sendMessage(chatId, m.join('\r\n'), { reply_to_message_id: msg.message_id })
+						}
+						else
+							bot.sendMessage(chatId, 'Failed to fetch: ' + err.toString(), { reply_to_message_id: msg.message_id })
+					})
+					return
+				}
+
+				if (!isCode(msg.text))
+					if ((shouldGrammar(msg.from.username) || (msg.forward_from != null && shouldGrammar(msg.forward_from.username))), msg.text != "") {
+						grammarReason = "Corrected this message:\n" + msg.text
+						grammarReason += "\n\nAt least with the following edits:"
+						var output: String = msg.text.trim()
+						function addAbout(about: String): Void {
+							if (about != null, grammarReason.indexOf(about) == -1)
+								grammarReason += "\n" + about
+						}
+						function replaceIf(what: String, to: String, about: String): Void {
+							while (output.indexOf(what) != -1) {
+								addAbout(about)
+								output = output.split(what).join(to)
+							}
+						}
+						replaceIf("i.e ", 'i.e. ', null)
+						replaceIf("  ", ' ', "Joined multiple spaces into single one")
+						replaceIf(")))", '))', "Cleaned the extra braces")
+						replaceIf("))", '😁', "Replaced the double braces to the unicode smiley")
+						replaceIf(" ?", '?', "Cleaned extra spaces before punctuation marks")
+						replaceIf(" !", '!', "Cleaned extra spaces before punctuation marks")
+						replaceIf(" .", '.', "Cleaned extra spaces before punctuation marks")
+						replaceIf(" ;", ';', "Cleaned extra spaces before punctuation marks")
+						replaceIf(" :", ':', "Cleaned extra spaces before punctuation marks")
+						replaceIf(" ,", ',', "Cleaned extra spaces before punctuation marks")
+						replaceIf(", ", ',', "Corrected spaces after signs")
+						output = output.split(",").join(", ").trim()
+						//replaceIf(",", ', ', "Corrected spaces after signs")
+						replaceIf(". .", '..', "Replaced ... to unicode dots")
+						replaceIf("....", '...', "Cleaned the extra dots")
+						replaceIf("...", '…', "Replaced ... to unicode dots")
+						replaceIf("..", '.', "Cleaned the extra dots")
+						let words: Map<String, String> = [
+							"видухи": "видеокарты",
+							"ати": "AMD",
+							"кгото": "кого-то",
+							"встановить": "восстановить",
+							"мксимум": "максимум",
+							"предусмотрно": "предусмотрено",
+							"лямов": "миллионов",
+							"протые": "простые",
+							"валяеться": "валяется",
+							"лишняяя": "лишняя",
+							"гтк": "GTK",
+							"некаму": "никому",
+							"павильно": "правильно",
+							"йа": "я",
+							"йя": "я",
+							"ишо": "ещё",
+							"миня": "меня",
+							"таго": "того",
+							"тож": "тоже",
+							"иза": "из-за",
+							"шо": "что",
+							"идияльная": "идеальная",
+							"орфогравий": "орфография",
+							"ёжег": "ёжик",
+							"йетот": "этот",
+							"арфограф": "орфограф",
+							"чтоб": "чтобы",
+							"резо": "резко",
+							"идеии": "идее",
+							"огранчено": "ограничено",
+							"йентот": "этот"
+						]
+						function toTitleCase(str: String): String {
+							if (str.length <= 1)
+								return str.toUpperCase()
+							//return str.replace(/\w\S*/g, function(txt){
+							return str.charAt(0).toUpperCase() + str.substr(1)
+							//})
+						}
+						let out = []
+						for (part in output.split(" "))
+						{
+							if (part == "")
+								continue
+							var part = part
+							for (word in words.keys()) {
+								//replaceIf(word, words[word], "Fixed spelling")
+								Console.log('space(' + part + ')', '[' + word + ']', '{' + words.get(word) + '}')
+								addAbout("Fixed spelling")
+								if (word == part)
+									part = words.get(word)
+								if ((word + ",") == part)
+									part = words.get(word) + ","
+								if ((word + ".") == part)
+									part = words.get(word) + "."
+								if (toTitleCase(word) == part)
+									part = toTitleCase(words.get(word))
+							}
+							out.push(part)
+						}
+						output = out.join(" ").trim()
+						let outs = []
+						for (part in output.split(", "))
+						{
+							if (part == "")
+								continue
+							var part = part
+							for (word in words.keys()) {
+								Console.log('comma(' + part + ')', '[' + word + ']', '{' + words.get(word) + '}')
+								//replaceIf(word, words[word], "Fixed spelling")
+								addAbout("Fixed spelling")
+								if (word == part)
+									part = words.get(word)
+								if (toTitleCase(word) == part)
+									part = toTitleCase(words.get(word))
+							}
+							outs.push(part)
+						}
+						output = outs.join(", ").trim()
+						//output = output.split('...').join('…')
+						//output = output.split('  ').join(' ').split('  ').join(' ')
+						//output = output.split(')))').join('))').split(')))').join('))').split('))').join('😁')
+						//output = output.split(' !').join('!').split(' ?').join('?')
+						var o = ""
+						for (t in output.split('.'))
+						{
+							let t = t.trim()
+							o += t.substr(0, 1).toUpperCase()
+							o += t.substr(1)
+							let ends = "?;:,.!…😁😂👍)("
+							if (ends.indexOf(t.substr(-1, 1)) == -1) {
+								//if(!t.endsWith('?'), !t.endsWith('!'), !t.endsWith('😁'), !t.endsWith(':'), !t.endsWith('…')) {
+								o += '. '
+								addAbout("Added dots at the ends of sentences")
+							}
+							else
+								o += ' '
+						}
+						output = o
+						if (!msg.text.trim().endsWith('.'))
+							msg.text = msg.text.trim() + '.'
+						if (msg.text.trim().toLowerCase() != output.trim().toLowerCase()) {
+							grammarReason += "\nAs a result:\n" + output.trim()
+							bot.sendMessage(chatId, 'Fixed:\r\n' + output.trim(), { reply_to_message_id: msg.message_id })
+							return
+						}
+					}
+
+				///////////////////////////////////////////////////////////////
+				if (msg.entities != null)
+					for (entitie in msg.entities)
+					{
+						if (entitie.type == EntityType.Mention) {
+							let mention = msg.text.substr(entitie.offset, entitie.length)
+							if (mention == "@peytys_bot") {
+								bot.sendMessage(chatId, help, { reply_to_message_id: msg.message_id })
+								return
+							}
+						}
+					}
+				if (command.indexOf("magic") > -1) {
+					bot.sendMessage(chatId, [
+						"```",
+						" ∧＿∧ ",
+						"( ･ω･｡)つ━☆・*。",
+						"⊂  ノ    ・゜+. ",
+						"しーＪ   °。+ *´¨) ",
+						"         .· ´¸.·*´¨) ¸.·*¨) ",
+						"          (¸.·´ (¸.·'* ☆ ",
+						"```"
+					].join("\r\n"), { parse_mode: ParseMode.Markdown, reply_to_message_id: msg.message_id })
+					return
+				}
+				// Goes at bottom, ensures bot doesn't hangs on the way
+				if (command == "ping") {
+					bot.sendMessage(chatId, 'Pong⚠️', { reply_to_message_id: msg.message_id })
+					return
+				}
+			}
+			catch (e: Any) {
+				bot.sendMessage(admin_chat, "Oops exception ¯\\_(ツ)_/¯" + '\n\n' + e)
+				throw e
+			}
+		})
+
+		// Web Hooks
+		let handler: GitHubHandler = createHandler({ path: '/github-webhook-handler', secret: 'application/x-www-form-urlencoded' })
+		http.createServer(function (req, res) {
+			handler(req, res, function (err) {
+				res.statusCode = 404
+				res.end('<html><head><meta charset="UTF-8"></head><body>What can I do for you?')
+			})
+		}).listen(3009)
+
+		handler.on('error', function (err: { message: String }) {
+			Console.error('Error:', err.message)
+		})
+
+		handler.on('ping', function (event: GitHubEvent) {
+			Console.log(JSON.stringify(event.payload.repository))
+			bot.sendMessage(admin_chat, 'Ping from GitHub: ' + JSON.stringify(event.payload.repository.full_name))
+		})
+
+		function tagToIssue(text: String, issues: String): String {
+			return text.split("#").join(issues)
+		}
+
+		function ccToUser(text: String): String {
+			return text.split("@").join('https://github.com/')
+		}
+
+		let gitFormat = { parse_mode: ParseMode.Html, disable_web_page_preview: true }
+
+		handler.on('push', function (event: GitHubEvent) {
+			Console.log('Received a push event: ' + JSON.stringify(event.payload))
+			let count: Int = (event.payload.commits.length)
+			if (count < 1) { return }
+			let head = '🔨 <a href="\(event.payload.compare)">' + count + ' new commit' + (count>1?'s':'') + '</a> ' +
+				'<b>to</b> <a href="' + event.payload.repository.html_url + '">' + event.payload.repository.name + '</a>\n\n'
+			let commits: Array<Dynamic> = event.payload.commits
+			let body = '' + [for(commit in commits)
+				'<a href="' + commit.url + '">' + commit.id.substr(0, 7) + '</a>: ' +
+				tagToIssue(commit.message, event.payload.repository.html_url + '/issues/') + '' +
+				' <b>by</b> <a href="https://github.com/' + commit.author.username + '">' + commit.author.name + '</a>'
+			].join('\n')
+			let result = head + body
+			bot.sendMessage(admin_chat, result, gitFormat)
+			//bot.sendMessage(greenteaos_news, result, gitFormat)
+			if (event.payload.repository.name != "PeyTys_Bot") { return }
+			bot.sendMessage(hexalang_news, result, gitFormat)
+		})
+
+		handler.on('issues', function (event: GitHubEvent) {
+			if (event.payload.action != 'opened') { return }
+			let repository = event.payload.repository
+			let issue = event.payload.issue
+			var text = '❕ <b>New issue</b> '
+			text += '<a href="' + issue.html_url + '">'
+			text += repository.name
+			text += '#' + issue.number
+			text += ' ' + issue.title + '</a>'
+			text += '\n<b>by</b> <a href="' + issue.user.html_url + '">' + issue.user.login + '</a>\n\n'
+			text += '' + ccToUser(tagToIssue(issue.body, repository.html_url + '/issues/'))
+			bot.sendMessage(admin_chat, text, gitFormat)
+			if (repository.name != "PeyTys_Bot") return {}
+			//bot.sendMessage(greenteaos_news, text, gitFormat)
+			//bot.sendMessage(hexalang, text, gitFormat)
+		})
+
+		handler.on('issue_comment', function (event) {
+			if (event.payload.action != 'created') { return }
+			let comment = event.payload.comment
+			let repository = event.payload.repository
+			let issue = event.payload.issue
+			var text = '💬 <b>New comment on</b> '
+			text += '<a href="' + comment.html_url + '">'
+			text += repository.name
+			text += '#' + issue.number
+			text += ' ' + issue.title + '</a>'
+			text += '\n<b>by</b> <a href="' + comment.user.html_url + '">' + comment.user.login + '</a>\n\n'
+			text += '' + ccToUser(tagToIssue(comment.body, repository.html_url + '/issues/'))
+			bot.sendMessage(admin_chat, text, gitFormat)
+			if (repository.name != "PeyTys_Bot") return {}
+			//bot.sendMessage(greenteaos_news, text, gitFormat)
+			//bot.sendMessage(hexalang, text, gitFormat)
+		})
+
+		handler.on('watch', function (event: GitHubEvent) {
+			Console.log('Received a watch event for %s to %s', event.payload.repository.name, event.payload.ref)
+			bot.sendMessage(admin_chat, [
+				"User " + event.payload.sender.html_url + " stargazed " + event.payload.repository.html_url + " repo!",
+				"Stars: ⭐️" + (event.payload.repository.stargazers_count + 1),
+				//"Watchers: 😎" + event.payload.repository.watchers_count,
+				"Forks: 🔗" + event.payload.repository.forks_count
+			].join("\r\n"))
+		})
+
+		handler.on('fork', function (event: GitHubEvent) {
+			Console.log('Received a fork event for %s to %s', event.payload.repository.name, event.payload.ref)
+			bot.sendMessage(admin_chat, [
+				"Appeared 🔗fork🔗 at " + event.payload.forkee.html_url,
+				"Hoping for patches to the main repository!",
+				"Total forks count: 🔗" + (event.payload.repository.forks_count + 0)
+				// NO TRAILIN COMMA!
+			].join("\r\n"))
+		})
+
+		////handler.on('pull_request_review_comment', function (event) {
+		////  Console.log('Received an event for %s to %s',
+		////    event.payload.repository.name,
+		////    event.payload.ref)
+		////
+		////    bot.sendMessage(admin_chat, [
+		////    	"The " + event.payload.forkee.html_url,
+		////    	" got comment!",
+		////    	": 🔗" + (event.payload.repository.forks_count + 0),
+		////    	].join("\r\n"))
+		////})
+
+		handler.on('pull_request_review', function (event: GitHubEvent) {
+			Console.log('Received an event for %s to %s', event.payload.repository.name, event.payload.ref)
+			if (event.payload.action == "submitted") {
+				let message = ["Patch got review " + event.payload.review.html_url]
+				if (event.payload.review.body != null, event.payload.review.body.length > 0) {
+					message.push("")
+					message.push("New comment from maintainer " + event.payload.review.user.html_url + "")
+					message.push('"' + event.payload.review.body + '"')
+				}
+				if (event.payload.review.state == "approved") {
+					message.push("")
+					message.push("State: 🎉APPROVED!🎉")
+				}
+				// TODO more states
+				bot.sendMessage(admin_chat, message.join("\r\n"))
+				if (event.payload.review.state == "approved") {
+					bot.sendSticker(admin_chat, "CAADAwADhQEAAu_thAXDSDqVrNRJjQI")
+				}
+			}
+		})
+
+		handler.on('pull_request', function (event) {
+			if (event.payload.action != 'opened') { return }
+			let repository = event.payload.repository
+			let pull_request = event.payload.pull_request
+			var text = '🔌 <b>New pull request</b> '
+			text += '<a href="' + pull_request.html_url + '">'
+			text += repository.name
+			text += '#' + pull_request.number
+			text += ' ' + pull_request.title + '</a>'
+			text += '\n<b>by</b> <a href="' + pull_request.user.html_url + '">' + pull_request.user.login + '</a>\n\n'
+			text += '' + ccToUser(tagToIssue(pull_request.body, repository.html_url + '/issues/'))
+			bot.sendMessage(admin_chat, text, gitFormat)
+			if (repository.name != "PeyTys_Bot") return {}
+			//bot.sendMessage(greenteaos_news, text, gitFormat)
+			//bot.sendMessage(hexalang, text, gitFormat)
+		})
+
+		handler.on('repository', function (event) {
+			let action: String = event.payload.action
+			let orgName: String = event.payload.organization.login
+			let repoLink: String = event.payload.repository.html_url
+			let repoDescription: String = event.payload.repository.description ?? ''
+			switch (action) {
+				case "created": {
+					let respond = 'New repo created in \(orgName)! \(repoLink)\n\n\(repoDescription)'
+					bot.sendMessage(admin_chat, respond)
+				}
+			}
+		})
+
+		handler.on('page_build', function (event) {
+			let status: String = event.payload.build.status
+			let orgName: String = event.payload.organization.login
+			if (status != 'built') { return }
+			let respond = 'Jekyll build for \(orgName) is complete! Info: \(event.payload.build.url)'
+			bot.sendMessage(admin_chat, respond)
+		})
+	}
+}
+
+new Bot()
+let version = JSON.parse(require('fs').readFileSync(__dirname + "/package.json")).version
+Console.log("PeyTy's Bot", version)
