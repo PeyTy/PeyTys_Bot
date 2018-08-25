@@ -72,6 +72,8 @@ class TelegramTDLib {
 										'use_secret_chats': false,
 										'use_file_database': true,
 										'use_chat_info_database': true,
+										'api_id': "?????????????????",
+										'api_hash': "?????????????????",
 										'system_language_code': 'en',
 										'application_version': '1.0',
 										'device_model': 'tdbot',
@@ -85,6 +87,16 @@ class TelegramTDLib {
 							{
 								await this.send({
 									'@type': 'checkDatabaseEncryptionKey',
+								})
+								await this.send({
+									'@type': 'setProxy',
+									proxy: {
+										"@type": 'proxySocks5',
+										server: '????????????????',
+										port: 1080,
+										username: '?????????????????',
+										password: '?????????????'
+									}
 								})
 								break
 							};

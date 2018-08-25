@@ -34,6 +34,7 @@ class TelegramBot {
 			reply_to_message_id: (format && format.reply_to_message_id) || 0,
 			input_message_content: {
 				'@type': 'inputMessageText',
+				text: text_formatted,
 				clear_draft: true
 			}
 		})
