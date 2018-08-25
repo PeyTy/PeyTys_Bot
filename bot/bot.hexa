@@ -29,7 +29,7 @@ declare class Global {
 	static function parseInt(any: Any): Int
 }
 
-@require("node-telegram-bot-api")
+@require("./tdlib-telegram-bot-api")
 declare class TelegramBot {
 	new(token: String, config: {:})
 	function on(event: String, fun: Message => Void): Void
