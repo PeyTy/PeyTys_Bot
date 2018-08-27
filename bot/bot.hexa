@@ -1107,6 +1107,19 @@ class Bot {
 			}
 		})
 
+		handler.on('status', function (event) {
+			let repository = event.payload.repository
+			var text = '🚧 <b>' + event.payload.description + '</b>\n'
+			text += '<b>For repository</b> <a href="' + repository.html_url + '">'
+			text += repository.full_name + '</a>\n'
+			if (event.payload.commit != null) {
+				text += '<b>For commit</b> <a href="' + event.payload.commit.html_url + '">'
+				text += (event.payload.commit.commit.message ?? 'show commit') + '</a>\n'
+			}
+			text += '<a href="' + event.payload.target_url + '">More information</a>\n\n'
+			bot.sendMessage(-1001183305589, text, gitFormat)
+		})
+
 		handler.on('pull_request', function (event) {
 			if (event.payload.action != 'opened') { return }
 			let repository = event.payload.repository
