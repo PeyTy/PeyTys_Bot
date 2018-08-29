@@ -2,7 +2,6 @@
 	"name": "PeyTys_Bot",
 	"version": "1.0.0",
 	"description": "",
-	"main": "bot/bot.hexa",
 	"author": "PeyTy",
 	"license": "GPL-3.0",
 	"output": "bot.js",
@@ -12,5 +11,7 @@
 			"generatePackageJson": false
 		}
 	},
-	"files": []
+	"files": [
+		"bot/bot.hexa"
+	]
 }
