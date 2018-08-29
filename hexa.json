@@ -5,6 +5,7 @@
 	"main": "bot/bot.hexa",
 	"author": "PeyTy",
 	"license": "GPL-3.0",
+	"output": "bot.js",
 	"target": {
 		"generator": "JavaScript",
 		"instance": {
