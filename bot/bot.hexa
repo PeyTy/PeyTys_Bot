@@ -123,11 +123,12 @@ declare Config = {
 
 
 class Bot {
-	static let greenteaos_news: Id = -1001333847602
-	static let greenteaos: Id = -1001082036352
-	static let hexalang: Id = -1001067052099
-	static let hexalang_news: Id = -1001168190572
+	static let greenteaos_news: Id = -1001363591575
+	static let greenteaos: Id = -1001185216943
+	static let hexalang: Id = -1001317592810
+	static let hexalang_news: Id = -1001137559156
 	static let admin_chat: Id = 609463140
+	static let admin_id: Id = 609463140
 	static let stickerAttention = "CAADAgADTQUAAp2mfwNRlOzArC6mzQI"
 
 	static let english = [greenteaos, greenteaos_news, hexalang]
@@ -401,7 +402,7 @@ class Bot {
 				msg.from = msg.from ?? {username: ""}
 				msg.from.username = msg.from.username ?? ""
 
-				let isAdmin = msg.from.username.toLowerCase() == "peyty"
+				let isAdmin = msg.from.id == admin_id
 
 				if (
 					(isAdmin) &&
@@ -425,7 +426,7 @@ class Bot {
 
 				if (isAdmin) {
 					if (command.indexOf('message info') > -1) {
-						bot.sendMessage(chatId, JSON.stringify(msg, null, 2), { reply_to_message_id: msg.message_id })
+						bot.sendMessage(chatId, '```\n' + JSON.stringify(msg, null, 2) + '\n```', { reply_to_message_id: msg.message_id })
 					}
 					if (command.indexOf('test sticker') > -1) {
 						bot.sendSticker(chatId, "CAADAwADhQEAAu_thAXDSDqVrNRJjQI", { reply_to_message_id: msg.message_id })
@@ -1117,6 +1118,9 @@ class Bot {
 				text += (event.payload.commit.commit.message ?? 'show commit') + '</a>\n'
 			}
 			text += '<a href="' + event.payload.target_url + '">More information</a>\n\n'
+			if (event.payload.state == "success") {
+				text += '⤵️ <a href="' + event.payload.target_url + '/artifacts">Download artifacts</a>\n\n'
+			}
 			bot.sendMessage(-1001183305589, text, gitFormat)
 		})
 
