@@ -131,7 +131,7 @@ class Bot {
 	static let admin_id: Id = 609463140
 	static let stickerAttention = "CAADAgADTQUAAp2mfwNRlOzArC6mzQI"
 
-	static let english = [greenteaos, greenteaos_news, hexalang]
+	static let english = [greenteaos_news, hexalang_news]
 
 	static let help =
 		"I understand only simple speech. Ask me through the @peytys_bot and text of the command." +
@@ -1015,9 +1015,9 @@ class Bot {
 			].join('\n')
 			let result = head + body
 			bot.sendMessage(admin_chat, result, gitFormat)
-			//bot.sendMessage(greenteaos_news, result, gitFormat)
-			if (event.payload.repository.name != "PeyTys_Bot") { return }
-			bot.sendMessage(hexalang_news, result, gitFormat)
+
+			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, result, gitFormat)
+			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, result, gitFormat)
 		})
 
 		handler.on('issues', function (event: GitHubEvent) {
@@ -1032,9 +1032,9 @@ class Bot {
 			text += '\n<b>by</b> <a href="' + issue.user.html_url + '">' + issue.user.login + '</a>\n\n'
 			text += '' + ccToUser(tagToIssue(issue.body, repository.html_url + '/issues/'))
 			bot.sendMessage(admin_chat, text, gitFormat)
-			if (repository.name != "PeyTys_Bot") return {}
-			//bot.sendMessage(greenteaos_news, text, gitFormat)
-			//bot.sendMessage(hexalang, text, gitFormat)
+
+			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
+			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
 
 		handler.on('issue_comment', function (event) {
@@ -1050,29 +1050,35 @@ class Bot {
 			text += '\n<b>by</b> <a href="' + comment.user.html_url + '">' + comment.user.login + '</a>\n\n'
 			text += '' + ccToUser(tagToIssue(comment.body, repository.html_url + '/issues/'))
 			bot.sendMessage(admin_chat, text, gitFormat)
-			if (repository.name != "PeyTys_Bot") return {}
-			//bot.sendMessage(greenteaos_news, text, gitFormat)
-			//bot.sendMessage(hexalang, text, gitFormat)
+
+			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
+			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
 
 		handler.on('watch', function (event: GitHubEvent) {
 			Console.log('Received a watch event for %s to %s', event.payload.repository.name, event.payload.ref)
-			bot.sendMessage(admin_chat, [
-				"User " + event.payload.sender.html_url + " stargazed " + event.payload.repository.html_url + " repo!",
+			let message = [
+				'<a href="' + event.payload.sender.html_url + '">@' + event.payload.sender.login + '</a> stargazed <a href="' + event.payload.repository.html_url + '">' + event.payload.repository.full_name + "</a> repo!",
 				"Stars: ⭐️" + (event.payload.repository.stargazers_count + 1),
 				//"Watchers: 😎" + event.payload.repository.watchers_count,
 				"Forks: 🔗" + event.payload.repository.forks_count
-			].join("\r\n"))
+			].join("\r\n")
+
+			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, message, gitFormat)
+			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, message, gitFormat)
 		})
 
 		handler.on('fork', function (event: GitHubEvent) {
 			Console.log('Received a fork event for %s to %s', event.payload.repository.name, event.payload.ref)
-			bot.sendMessage(admin_chat, [
+			let message = [
 				"Appeared 🔗fork🔗 at " + event.payload.forkee.html_url,
 				"Hoping for patches to the main repository!",
 				"Total forks count: 🔗" + (event.payload.repository.forks_count + 0)
 				// NO TRAILIN COMMA!
-			].join("\r\n"))
+			].join("\r\n")
+
+			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, message, gitFormat)
+			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, message, gitFormat)
 		})
 
 		////handler.on('pull_request_review_comment', function (event) {
@@ -1105,6 +1111,9 @@ class Bot {
 				if (event.payload.review.state == "approved") {
 					bot.sendSticker(admin_chat, "CAADAwADhQEAAu_thAXDSDqVrNRJjQI")
 				}
+
+				if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, message.join("\r\n"), gitFormat)
+				if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, message.join("\r\n"), gitFormat)
 			}
 		})
 
@@ -1122,6 +1131,9 @@ class Bot {
 				text += '⤵️ <a href="' + event.payload.target_url + '/artifacts">Download artifacts</a>\n\n'
 			}
 			bot.sendMessage(-1001183305589, text, gitFormat)
+
+			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
+			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
 
 		handler.on('pull_request', function (event) {
@@ -1136,9 +1148,9 @@ class Bot {
 			text += '\n<b>by</b> <a href="' + pull_request.user.html_url + '">' + pull_request.user.login + '</a>\n\n'
 			text += '' + ccToUser(tagToIssue(pull_request.body, repository.html_url + '/issues/'))
 			bot.sendMessage(admin_chat, text, gitFormat)
-			if (repository.name != "PeyTys_Bot") return {}
-			//bot.sendMessage(greenteaos_news, text, gitFormat)
-			//bot.sendMessage(hexalang, text, gitFormat)
+
+			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
+			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
 
 		handler.on('repository', function (event) {
