@@ -14,7 +14,6 @@
 
 // JavaScript bindings
 
-
 class ES6 {
 	static function trim(s: String): String return @untyped s['trim']()
 	static function startsWith(s: String, sub: String): Bool return @untyped s['startsWith'](sub)
@@ -306,7 +305,7 @@ class Bot {
 					results.push({
 						type: "sticker", // String Type of the result, must be sticker
 						id: sticker, // String Unique identifier for this result, 1-64 bytes
-						sticker_file_id: sticker, // String A valid file identifier of the sticker
+						sticker_file_id: sticker // String A valid file identifier of the sticker
 					})
 					if (let math = mathValue) {
 						results.push({
@@ -314,7 +313,7 @@ class Bot {
 							id: sticker+"-math", // String Unique identifier for this result, 1-64 bytes
 							title: query.query.substr(offset).trim(), // String A valid file identifier of the sticker
 							description: math,
-							input_message_content: {message_text: "" + query.query.substr(offset).trim() + ' = ' + math},
+							input_message_content: {message_text: "" + query.query.substr(offset).trim() + ' = ' + math}
 						})
 					}
 					results.push({
@@ -322,7 +321,7 @@ class Bot {
 						id: sticker+"-article", // String Unique identifier for this result, 1-64 bytes
 						title: "Click on the sticker on the top left!", // String A valid file identifier of the sticker
 						description: "Even if you don't see it, it's there!",
-						input_message_content: {message_text: "" + query.query.substr(offset).trim()},
+						input_message_content: {message_text: "" + query.query.substr(offset).trim()}
 					})
 					Global.setTimeout(function() {
 						bot.answerInlineQuery(queryId, /*JSON.stringify*/@untyped results, { cache_time: 86400 })
@@ -779,7 +778,7 @@ class Bot {
 								"ntoskrnl",
 								//"sdk",
 								"subsystems",
-								"win32ss",
+								"win32ss"
 							]
 							m.push('')
 							m.push('Affected subsystems:')
