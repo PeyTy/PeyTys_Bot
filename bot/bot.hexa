@@ -28,6 +28,9 @@ declare class Global {
 	static function parseInt(any: Any): Int
 }
 
+declare MessageData = {
+}
+
 @require("./tdlib-telegram-bot-api")
 declare class TelegramBot {
 	new(token: String, config: {:})
@@ -59,9 +62,6 @@ enum EntityType: String {
 enum ParseMode: String {
 	Markdown = "Markdown"
 	Html = "HTML"
-}
-
-declare MessageData = {
 }
 
 declare Message = {
@@ -228,6 +228,12 @@ class Bot {
 			fs.mkdirSync(dir)
 		}
 
+		// Create data folder
+		let data = 'data'
+		if (!fs.existsSync(data)) {
+			fs.mkdirSync(data)
+		}
+
 		// Create a bot that uses 'polling' to fetch new updates
 		let bot = new TelegramBot(token, {polling: true})
 
@@ -264,7 +270,7 @@ class Bot {
 		}
 
 		function drawSticker(chatId: Id, text: String, promiseHandler: (Any) => Void) {
-			let tmp = 'temp/' + Math.random() + '_' + Math.random() + '.png'
+			let tmp = 'temp\\' + Math.random() + '_' + Math.random() + '.png'
 			webshot(text
 			,
 			tmp, {
@@ -280,7 +286,7 @@ class Bot {
 			})
 		}
 
-		bot.on('inline_query', function (query: Any) {
+		bot.on('inline_query', function (query: Any) try {
 			let queryId = query.id
 
 			var offset: Int = Global.parseInt(query.offset) ?? 0
@@ -328,12 +334,12 @@ class Bot {
 					},222)
 				})}
 			)
-		})
+		} catch(e: Any) console.error(e))
 
 		// Listen for any kind of message. There are different kinds of
 		// messages.
-		var previousMessage: Message = null
-		var grammarReason: String = null
+		var previousMessage: Message? = null
+		var grammarReason: String? = null
 		bot.on('message', function (msg: Message) {
 		  try {
 				let chatId = msg.chat.id
@@ -402,6 +408,7 @@ class Bot {
 				msg.from.username = msg.from.username ?? ""
 
 				let isAdmin = msg.from.id == admin_id
+				if (msg.from.id == 308116295) { return }
 
 				if (
 					(isAdmin) &&
@@ -470,7 +477,7 @@ class Bot {
 						function shotAllLinks(links: [String], index: Int = 0) {
 							let link = links[index]
 							bot.sendMessage(chatId, "Shooting " + link, {reply_to_message_id:msg.message_id})
-							let tmp = 'temp/'+Math.random()+'_'+Math.random()+'.pdf'
+							let tmp = 'temp\\' + Math.random() + '_' + Math.random() + '.pdf'
 							webshot(link, tmp, {
 								defaultWhiteBackground: true,
 								quality: 55,
@@ -645,7 +652,8 @@ class Bot {
 				}
 
 				if ((command == "sticker" || command == "get sticker"), let reply = msg.reply_to_message) {
-					let tmp = 'temp/' + Math.random() + '_' + Math.random() + '.png'
+					let tmp = 'temp\\' + Math.random() + '_' + Math.random() + '.png'
+					reply.text = reply.text ?? ''
 					if (reply.text.split(' ').length < 4) {
 						reply.text = "&nbsp; " + reply.text + " &nbsp;"
 					}
@@ -968,7 +976,6 @@ class Bot {
 			}
 			catch (e: Any) {
 				bot.sendMessage(admin_chat, "Oops exception ¯\\_(ツ)_/¯" + '\n\n' + e)
-				throw e
 			}
 		})
 
@@ -1013,8 +1020,8 @@ class Bot {
 				' <b>by</b> <a href="https://github.com/' + commit.author.username + '">' + commit.author.name + '</a>'
 			].join('\n')
 			let result = head + body
-			bot.sendMessage(admin_chat, result, gitFormat)
 
+			bot.sendMessage(admin_chat, result, gitFormat)
 			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, result, gitFormat)
 			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, result, gitFormat)
 		})
@@ -1030,8 +1037,8 @@ class Bot {
 			text += ' ' + issue.title + '</a>'
 			text += '\n<b>by</b> <a href="' + issue.user.html_url + '">' + issue.user.login + '</a>\n\n'
 			text += '' + ccToUser(tagToIssue(issue.body, repository.html_url + '/issues/'))
-			bot.sendMessage(admin_chat, text, gitFormat)
 
+			bot.sendMessage(admin_chat, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
@@ -1048,8 +1055,8 @@ class Bot {
 			text += ' ' + issue.title + '</a>'
 			text += '\n<b>by</b> <a href="' + comment.user.html_url + '">' + comment.user.login + '</a>\n\n'
 			text += '' + ccToUser(tagToIssue(comment.body, repository.html_url + '/issues/'))
-			bot.sendMessage(admin_chat, text, gitFormat)
 
+			bot.sendMessage(admin_chat, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
@@ -1063,6 +1070,7 @@ class Bot {
 				"Forks: 🔗" + event.payload.repository.forks_count
 			].join("\r\n")
 
+			bot.sendMessage(admin_chat, message, gitFormat)
 			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, message, gitFormat)
 			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, message, gitFormat)
 		})
@@ -1076,6 +1084,7 @@ class Bot {
 				// NO TRAILIN COMMA!
 			].join("\r\n")
 
+			bot.sendMessage(admin_chat, message, gitFormat)
 			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, message, gitFormat)
 			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, message, gitFormat)
 		})
@@ -1129,8 +1138,8 @@ class Bot {
 			if (event.payload.state == "success") {
 				text += '⤵️ <a href="' + event.payload.target_url + '/artifacts">Download artifacts</a>\n\n'
 			}
-			bot.sendMessage(-1001183305589, text, gitFormat)
 
+			bot.sendMessage(admin_chat, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
@@ -1146,8 +1155,8 @@ class Bot {
 			text += ' ' + pull_request.title + '</a>'
 			text += '\n<b>by</b> <a href="' + pull_request.user.html_url + '">' + pull_request.user.login + '</a>\n\n'
 			text += '' + ccToUser(tagToIssue(pull_request.body, repository.html_url + '/issues/'))
-			bot.sendMessage(admin_chat, text, gitFormat)
 
+			bot.sendMessage(admin_chat, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('Greentea') > 0) bot.sendMessage(greenteaos, text, gitFormat)
 			if (event.payload.repository.html_url.indexOf('hexalang') > 0) bot.sendMessage(hexalang, text, gitFormat)
 		})
