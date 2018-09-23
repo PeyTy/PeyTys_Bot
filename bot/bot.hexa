@@ -410,6 +410,52 @@ class Bot {
 				let isAdmin = msg.from.id == admin_id
 				if (msg.from.id == 308116295) { return }
 
+				 {
+					let joined = (msg.text ?? '').toLowerCase()
+						.split('  ').join(' ')
+						.split('.').join(' ')
+						.split(',').join(' ')
+						.split(';').join(' ')
+						.split('!').join(' ')
+						.split('?').join(' ')
+						.split(':').join(' ')
+						.split('(').join(' ')
+						.split(')').join(' ')
+						.split('"').join(' ')
+						.split('\t').join(' ')
+						.split('\n').join(' ')
+						.split(' ')
+
+					let profanes = [
+						]
+
+					var hasProfane = -1
+					for (i in joined.length) {
+						let word = joined[i]
+						for (profane in profanes) {
+							if (word == profane) { hasProfane = i break }
+							if (word.startsWith(profane)) { hasProfane = i break }
+							if (word.endsWith(profane)) { hasProfane = i break }
+							if (hasProfane != -1) break
+						}
+						if (hasProfane != -1) break
+					}
+
+					if (
+						(Math.random() > 0.4) &&
+						(joined != '') && (hasProfane != -1)
+					) {
+						let warn = randomFromArray([
+							"Don't use profane words!",
+							"Algorithm detected offensive language. You should generally avoid it.",
+							"It's always better to be polite",
+							"Avoid bad language!"
+						]) + '\n\nTrigger: ' + joined[hasProfane]
+						bot.sendMessage(chatId, warn, { reply_to_message_id: msg.message_id })
+						return
+					}
+				}
+
 				if (
 					(isAdmin) &&
 					(msg.text != '') &&
