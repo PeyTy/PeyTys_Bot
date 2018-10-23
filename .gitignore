@@ -1,5 +1,7 @@
 temp*
 *.map
+*.dll
+*.txt
 .sync
 node_modules
 *.js
