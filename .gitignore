@@ -6,3 +6,4 @@ temp*
 node_modules
 *.js
 config.json
+requested.json

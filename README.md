@@ -15,7 +15,7 @@ Supported features:
 + Says hello to newcomers
 + Removes bots instantly for group if admin
 
-Create config.json within bot.js directory:
+Create `config.json` within `bot.js` directory:
 
 ```json
 {
@@ -26,6 +26,14 @@ Create config.json within bot.js directory:
 	"profane": ["blacklisted"]
 }
 ```
+
+Create `requested.json` within `bot.js` directory with just this:
+
+```json
+[]
+```
+
+Build:
 
 ```sh
 npm install -g nodemon

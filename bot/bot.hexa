@@ -209,6 +209,21 @@ class Bot {
 		let webp = require('webp-converter')
 
 		let config: Config = JSON.parse(fs.readFileSync(__dirname + "/config.json"))
+		let requested: Config = JSON.parse(fs.readFileSync(__dirname + "/requested.json"))
+
+		function saveChatSettings() {
+			fs.writeFileSync(__dirname + "/requested.json", JSON.stringify(requested))
+		}
+
+		function getChatSettings(id) {
+			for (chat in requested) {
+				if (chat.id == id) return chat
+			}
+			let chat = { id: id }
+			requested.push(chat)
+			saveChatSettings()
+			return chat
+		}
 
 		// Replace the value below with the Telegram token you receive from @BotFather
 		let token = config.token // 000000000:AAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -405,7 +420,7 @@ class Bot {
 				let isAdmin = msg.from.id == admin_id
 				if (msg.from.id == 308116295) { return }
 
-				 {
+				if (getChatSettings(msg.chat.id).allowProfanes != true) {
 					let joined = (msg.text ?? '').toLowerCase()
 						.split('  ').join(' ')
 						.split('.').join(' ')
@@ -469,6 +484,21 @@ class Bot {
 						bot.sendMessage(chatId, "" + e.message, { reply_to_message_id: msg.message_id })
 					}
 					return
+				}
+
+				if (isAdmin) {
+					if (command == 'allow profanes') {
+						getChatSettings(msg.chat.id).allowProfanes = true
+						saveChatSettings()
+						bot.sendMessage(chatId, 'Profanes allowed, gosh! :(', { reply_to_message_id: msg.message_id })
+						return
+					}
+					if (command == 'disallow profanes') {
+						getChatSettings(msg.chat.id).allowProfanes = false
+						saveChatSettings()
+						bot.sendMessage(chatId, 'Profanes disallowed, very nice!', { reply_to_message_id: msg.message_id })
+						return
+					}
 				}
 
 				if (isAdmin) {
