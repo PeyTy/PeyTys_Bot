@@ -438,6 +438,7 @@ class Bot {
 					if (
 						(Math.random() > 0.4) &&
 						(joined != '') && (hasProfane != -1)
+						&& (config.whitelist.indexOf(joined[hasProfane]) == -1)
 					) {
 						let warn = randomFromArray([
 							"Don't use profane words!",
