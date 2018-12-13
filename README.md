@@ -22,6 +22,7 @@ Create config.json within bot.js directory:
 	"token": "000000000:AAaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaa",
 	"wikiPath": "/Greentea/Greentea/",
 	"wikiPathKernel": "/Greentea/Kernel.wiki/",
+	"profane": ["blacklisted"]
 }
 ```
 

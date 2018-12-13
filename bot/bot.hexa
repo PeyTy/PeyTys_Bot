@@ -421,8 +421,7 @@ class Bot {
 						.split('\n').join(' ')
 						.split(' ')
 
-					let profanes = [
-						]
+					let profanes = config.profane
 
 					var hasProfane = -1
 					for (i in joined.length) {
