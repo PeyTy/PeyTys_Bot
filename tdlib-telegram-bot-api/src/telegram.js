@@ -35,6 +35,7 @@ class TelegramBot {
 			input_message_content: {
 				'@type': 'inputMessageText',
 				text: text_formatted,
+				disable_web_page_preview: format.disable_web_page_preview || false,
 				clear_draft: true
 			}
 		})
