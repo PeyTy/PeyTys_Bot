@@ -1226,9 +1226,12 @@ class Bot {
 				text += '<b>For commit</b> <a href="' + event.payload.commit.html_url + '">'
 				text += (event.payload.commit.commit.message ?? 'show commit') + '</a>\n'
 			}
-			text += '<a href="' + event.payload.target_url + '">More information</a>\n\n'
+			text += '\n'
+			if (event.payload.target_url) {
+				text += 'ℹ️ <a href="' + event.payload.target_url + '">More information</a>\n'
+			}
 			if (event.payload.state == "success") {
-				text += '⤵️ <a href="' + event.payload.target_url + '/artifacts">Download artifacts</a>\n\n'
+				text += '⤵️ <a href="' + event.payload.target_url + '/artifacts">Download artifacts</a>'
 			}
 
 			bot.sendMessage(admin_chat, text, gitFormat)
