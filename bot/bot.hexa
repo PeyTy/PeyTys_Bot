@@ -1259,10 +1259,10 @@ class Bot {
 				text += (event.payload.commit.commit.message ?? 'show commit') + '</a>\n'
 			}
 			text += '\n'
-			if (event.payload.target_url) {
+			if (event.payload.description.indexOf('AppVeyor') != -1, event.payload.target_url) {
 				text += 'ℹ️ <a href="' + event.payload.target_url + '">More information</a>\n'
 			}
-			if (event.payload.state == "success") {
+			if (event.payload.description.indexOf('AppVeyor') != -1, event.payload.state == "success") {
 				text += '⤵️ <a href="' + event.payload.target_url + '/artifacts">Download artifacts</a>'
 			}
 
